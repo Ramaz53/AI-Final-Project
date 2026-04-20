@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SmartBin — Intelligent Waste Classification</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        forest: { 50:'#f0fdf4', 100:'#dcfce7', 200:'#bbf7d0', 300:'#86efac', 400:'#4ade80', 500:'#22c55e', 600:'#16a34a', 700:'#15803d', 800:'#166534', 900:'#14532d', 950:'#052e16' },
+                        amber:  { 400:'#fbbf24', 500:'#f59e0b', 600:'#d97706' },
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-family: 'Inter', sans-serif; }
+        body { background: #030a06; color: #fff; overflow-x: hidden; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #052e16; }
+        ::-webkit-scrollbar-thumb { background: #16a34a; border-radius: 3px; }
+
+        /* ===== PAGE SYSTEM ===== */
+        .page { display: none; opacity: 0; }
+        .page.active {
+            display: block;
+            animation: pageReveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes pageReveal {
+            from { opacity: 0; transform: translateY(40px) scale(0.98); filter: blur(6px); }
+            to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        /* ===== SCROLL REVEAL ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-left {
+            opacity: 0; transform: translateX(-60px);
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .reveal-left.visible { opacity: 1; transform: translateX(0); }
+        .reveal-right {
+            opacity: 0; transform: translateX(60px);
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .reveal-right.visible { opacity: 1; transform: translateX(0); }
+        .reveal-scale {
+            opacity: 0; transform: scale(0.85);
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+        /* ===== HERO BG ===== */
+        .hero-bg {
+            position: absolute; inset: 0;
+            background: url('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=1920&q=80') center/cover no-repeat;
+        }
+        .hero-bg::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to bottom,
+                rgba(3,10,6,0.7) 0%,
+                rgba(3,10,6,0.85) 40%,
+                rgba(3,10,6,0.95) 70%,
+                #030a06 100%
+            );
+        }
+
+        /* ===== FEATURES BG ===== */
+        .features-bg {
+            position: absolute; inset: 0;
+            background: url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1920&q=80') center/cover no-repeat;
+        }
+        .features-bg::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to bottom, #030a06 0%, rgba(3,10,6,0.88) 15%, rgba(3,10,6,0.88) 85%, #030a06 100%);
+        }
+
+        /* ===== HOW IT WORKS BG ===== */
+        .how-bg {
+            position: absolute; inset: 0;
+            background: url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1920&q=80') center/cover no-repeat;
+        }
+        .how-bg::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to bottom, #030a06 0%, rgba(3,10,6,0.9) 20%, rgba(3,10,6,0.9) 80%, #030a06 100%);
+        }
+
+        /* ===== CONTACT BG ===== */
+        .contact-bg {
+            position: absolute; inset: 0;
+            background: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80') center/cover no-repeat;
+        }
+        .contact-bg::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to bottom, #030a06 0%, rgba(3,10,6,0.88) 20%, rgba(3,10,6,0.88) 85%, #030a06 100%);
+        }
+
+        /* ===== GRADIENT TEXT ===== */
+        .grad-text {
+            background: linear-gradient(135deg, #ffffff 0%, #86efac 40%, #fbbf24 70%, #ffffff 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradShift 6s ease infinite;
+        }
+        @keyframes gradShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .grad-text-soft {
+            background: linear-gradient(to right, #ffffff, #bbf7d0, #86efac);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== GLOW BLOBS ===== */
+        .glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            pointer-events: none;
+            animation: glowPulse 8s ease-in-out infinite alternate;
+        }
+        @keyframes glowPulse {
+            0% { opacity: 0.12; transform: scale(1); }
+            100% { opacity: 0.22; transform: scale(1.15); }
+        }
+
+        /* ===== GLASS CARD ===== */
+        .glass {
+            background: rgba(5,46,22,0.35);
+            border: 1px solid rgba(34,197,94,0.12);
+            backdrop-filter: blur(16px);
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .glass:hover {
+            transform: translateY(-6px);
+            background: rgba(5,46,22,0.5);
+            border-color: rgba(34,197,94,0.3);
+            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.5), 0 0 40px -10px rgba(22,163,74,0.15);
+        }
+
+        .glass-subtle {
+            background: rgba(5,46,22,0.2);
+            border: 1px solid rgba(34,197,94,0.08);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .glass-subtle:hover {
+            background: rgba(5,46,22,0.35);
+            border-color: rgba(34,197,94,0.2);
+            transform: translateY(-3px);
+        }
+
+        /* ===== SHINY BTN ===== */
+        .btn-glow {
+            position: relative;
+            background: linear-gradient(135deg, #16a34a, #059669);
+            box-shadow: 0 0 20px -3px rgba(22,163,74,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .btn-glow::after {
+            content: '';
+            position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 55%, transparent 100%);
+            transform: rotate(25deg) translateX(-150%);
+            animation: shimmer 5s linear infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: rotate(25deg) translateX(-150%); }
+            100% { transform: rotate(25deg) translateX(150%); }
+        }
+        .btn-glow:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 35px -3px rgba(22,163,74,0.7), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn-glow:active { transform: translateY(0) scale(0.98); }
+
+        .btn-amber {
+            position: relative;
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            box-shadow: 0 0 20px -3px rgba(245,158,11,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .btn-amber::after {
+            content: '';
+            position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 55%, transparent 100%);
+            transform: rotate(25deg) translateX(-150%);
+            animation: shimmer 5s linear infinite;
+        }
+        .btn-amber:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 35px -3px rgba(245,158,11,0.6);
+        }
+
+        /* ===== OUTLINE BTN ===== */
+        .btn-outline {
+            border: 1px solid rgba(34,197,94,0.3);
+            background: rgba(34,197,94,0.05);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .btn-outline:hover {
+            background: rgba(34,197,94,0.12);
+            border-color: rgba(34,197,94,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(22,163,74,0.2);
+        }
+
+        /* ===== FEATURE ICON ===== */
+        .feat-icon {
+            width: 52px; height: 52px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
+            border: 1px solid rgba(34,197,94,0.2);
+            transition: all 0.4s;
+        }
+        .glass:hover .feat-icon {
+            background: linear-gradient(135deg, rgba(34,197,94,0.3), rgba(34,197,94,0.1));
+            box-shadow: 0 0 20px rgba(34,197,94,0.2);
+        }
+
+        /* ===== UPLOAD ZONE ===== */
+        .upload-zone {
+            border: 2px dashed rgba(34,197,94,0.2);
+            background: rgba(5,46,22,0.15);
+            transition: all 0.4s;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #22c55e;
+            background: rgba(34,197,94,0.08);
+            box-shadow: 0 0 40px -10px rgba(34,197,94,0.15);
+        }
+
+        /* ===== SCANNER ===== */
+        .scanner-line {
+            position: absolute; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(to right, transparent, #22c55e, transparent);
+            box-shadow: 0 0 20px #22c55e;
+            animation: scanMove 1.5s ease-in-out infinite;
+        }
+        @keyframes scanMove {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* ===== SEGMENTS ===== */
+        .segment {
+            position: absolute; opacity: 0;
+            transform: scale(0.5) rotate(-10deg);
+            transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .segment.revealed {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+
+        /* ===== PCT BAR ===== */
+        .pct-bar {
+            height: 100%; border-radius: 9999px; width: 0;
+            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* ===== PULSE RING ===== */
+        .pulse-ring {
+            animation: pulseRing 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            80%, 100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        /* ===== FLOAT PARTICLES ===== */
+        .leaf {
+            position: absolute;
+            font-size: 14px;
+            opacity: 0;
+            animation: leafFloat linear infinite;
+            pointer-events: none;
+        }
+        @keyframes leafFloat {
+            0%   { transform: translateY(0) rotate(0deg) translateX(0); opacity: 0; }
+            5%   { opacity: 0.6; }
+            50%  { transform: translateY(-400px) rotate(180deg) translateX(60px); opacity: 0.4; }
+            95%  { opacity: 0.1; }
+            100% { transform: translateY(-800px) rotate(360deg) translateX(-20px); opacity: 0; }
+        }
+
+        /* ===== NAV ===== */
+        .nav-link { position: relative; }
+        .nav-link.active-link { color: #fff !important; }
+        .nav-link.active-link::after {
+            content: ''; position: absolute;
+            bottom: -4px; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 3px;
+            background: linear-gradient(to right, #22c55e, #fbbf24);
+            border-radius: 999px;
+        }
+
+        /* ===== RECYCLE BADGES ===== */
+        .badge-yes  { border-color: #22c55e; background: rgba(34,197,94,0.08); }
+        .badge-no   { border-color: #ef4444; background: rgba(239,68,68,0.08); }
+        .badge-mid  { border-color: #fbbf24; background: rgba(251,191,36,0.08); }
+
+        /* ===== RESULT ANIM ===== */
+        @keyframes resultUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .result-anim {
+            opacity: 0;
+            animation: resultUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* ===== MOBILE MENU ===== */
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .mobile-menu.open { transform: translateX(0); }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px;
+            padding: 14px 22px; border-radius: 14px;
+            background: rgba(5,46,22,0.95);
+            border: 1px solid rgba(34,197,94,0.2);
+            backdrop-filter: blur(16px);
+            transform: translateY(120px); opacity: 0;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* ===== BG GRID ===== */
+        .bg-mesh {
+            background-image:
+                radial-gradient(at 20% 80%, rgba(34,197,94,0.04) 0, transparent 50%),
+                radial-gradient(at 80% 20%, rgba(251,191,36,0.03) 0, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(34,197,94,0.02) 0, transparent 70%);
+        }
+
+        /* ===== STEP LINE ===== */
+        .step-line {
+            position: relative;
+        }
+        .step-line::after {
+            content: '';
+            position: absolute; top: 50%; left: 100%;
+            width: 40px; height: 2px;
+            background: linear-gradient(to right, rgba(34,197,94,0.5), transparent);
+        }
+
+        /* ===== COUNTER ANIM ===== */
+        .counter { display: inline-block; }
+
+        /* ===== MARQUEE ===== */
+        .marquee-track {
+            display: flex;
+            animation: marquee 30s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ===== PARALLAX TILT ===== */
+        .tilt-card {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        .tilt-card:hover .tilt-inner {
+            transform: rotateX(2deg) rotateY(-2deg);
+        }
+        .tilt-inner {
+            transition: transform 0.4s ease;
+        }
+    </style>
+</head>
+<body class="bg-mesh">
+
+    <!-- ===== FLOATING LEAVES ===== -->
+    <div id="leaves" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- ===== GLOW BLOBS ===== -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="glow" style="width:600px;height:600px;top:-200px;left:-150px;background:#16a34a;"></div>
+        <div class="glow" style="width:500px;height:500px;bottom:-200px;right:-100px;background:#f59e0b;animation-delay:3s;"></div>
+        <div class="glow" style="width:800px;height:800px;top:40%;left:40%;background:#059669;opacity:0.06;animation-delay:5s;"></div>
+    </div>
+
+
+    <!-- ==================== NAVIGATION ==================== -->
+    <nav class="fixed top-0 left-0 right-0 z-50 pt-3 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between h-16 px-6 rounded-2xl bg-[#030a06]/70 backdrop-blur-2xl border border-green-500/10 shadow-lg shadow-black/20">
+                <a href="#" onclick="navigateTo('home')" class="flex items-center gap-3 group">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-green-500 to-emerald-700 flex items-center justify-center shadow-lg shadow-green-500/20 group-hover:shadow-green-500/40 transition-shadow">
+                        <i data-lucide="leaf" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="text-lg font-bold tracking-tight">AI <span class="text-green-400">SmartBin</span></span>
+                </a>
+                <div class="hidden md:flex items-center gap-1">
+                    <a href="#" onclick="navigateTo('home')" class="nav-link active-link px-4 py-2 text-sm font-medium text-green-300/60 hover:text-white transition-colors duration-300" data-page="home">Home</a>
+                    <a href="#" onclick="navigateTo('features')" class="nav-link px-4 py-2 text-sm font-medium text-green-300/60 hover:text-white transition-colors duration-300" data-page="features">Features</a>
+                    <a href="#" onclick="navigateTo('how-it-works')" class="nav-link px-4 py-2 text-sm font-medium text-green-300/60 hover:text-white transition-colors duration-300" data-page="how-it-works">How It Works</a>
+                    <a href="#" onclick="navigateTo('contact')" class="nav-link px-4 py-2 text-sm font-medium text-green-300/60 hover:text-white transition-colors duration-300" data-page="contact">Contact</a>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="navigateTo('how-it-works')" class="hidden sm:flex btn-glow text-white text-sm font-medium px-5 py-2.5 rounded-xl items-center gap-2">
+                        <i data-lucide="scan" class="w-4 h-4"></i>
+                        Analyze
+                    </button>
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-green-300/60 hover:text-white transition-colors">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 bottom-0 w-72 z-50 bg-[#030a06]/95 backdrop-blur-2xl border-l border-green-500/10 p-6 pt-20">
+        <button onclick="toggleMobileMenu()" class="absolute top-5 right-5 p-2 text-green-300/60 hover:text-white transition-colors">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <div class="flex flex-col gap-1">
+            <a href="#" onclick="navigateTo('home');toggleMobileMenu()" class="px-4 py-3 text-green-300/60 hover:text-white hover:bg-green-500/10 rounded-xl transition-all text-sm font-medium">Home</a>
+            <a href="#" onclick="navigateTo('features');toggleMobileMenu()" class="px-4 py-3 text-green-300/60 hover:text-white hover:bg-green-500/10 rounded-xl transition-all text-sm font-medium">Features</a>
+            <a href="#" onclick="navigateTo('how-it-works');toggleMobileMenu()" class="px-4 py-3 text-green-300/60 hover:text-white hover:bg-green-500/10 rounded-xl transition-all text-sm font-medium">How It Works</a>
+            <a href="#" onclick="navigateTo('contact');toggleMobileMenu()" class="px-4 py-3 text-green-300/60 hover:text-white hover:bg-green-500/10 rounded-xl transition-all text-sm font-medium">Contact</a>
+            <hr class="border-green-500/10 my-4">
+            <button onclick="navigateTo('how-it-works');toggleMobileMenu()" class="btn-glow text-white text-sm font-medium px-5 py-3 rounded-xl flex items-center justify-center gap-2">
+                <i data-lucide="scan" class="w-4 h-4"></i> Analyze Waste
+            </button>
+        </div>
+    </div>
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
+
+
+    <!-- ==================== HOME PAGE ==================== -->
+    <section id="page-home" class="page active">
+        <div class="relative min-h-screen flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
+            <div class="hero-bg"></div>
+            <div class="relative z-10 max-w-4xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/20 bg-green-500/5 mb-8" style="animation: resultUp 0.6s 0.2s both;">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    <span class="text-xs font-medium tracking-wide text-green-300/80">AI-Powered Waste Intelligence</span>
+                </div>
+
+                <h1 class="text-5xl sm:text-6xl lg:text-[5.5rem] font-bold tracking-tight leading-[1.05] grad-text mb-6" style="animation: resultUp 0.8s 0.3s both;">
+                    Sort Smarter,<br>Live Greener
+                </h1>
+
+                <p class="text-lg sm:text-xl font-light text-green-100/50 leading-relaxed max-w-2xl mx-auto mb-10 tracking-wide" style="animation: resultUp 0.8s 0.5s both;">
+                    Upload a photo of your waste and watch our AI instantly classify it into plastic, paper, and organic — with visual breakdowns and recycling wisdom.
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4" style="animation: resultUp 0.8s 0.7s both;">
+                    <button onclick="navigateTo('how-it-works')" class="btn-glow text-white font-semibold px-8 py-4 rounded-2xl flex items-center gap-2.5 text-base">
+                        <i data-lucide="camera" class="w-5 h-5"></i>
+                        Start Analyzing
+                    </button>
+                    <button onclick="navigateTo('features')" class="btn-outline text-green-200/80 font-medium px-8 py-4 rounded-2xl flex items-center gap-2.5 text-base">
+                        <i data-lucide="play-circle" class="w-5 h-5"></i>
+                        Explore Features
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-8 sm:gap-12 mt-16" style="animation: resultUp 0.8s 0.9s both;">
+                    <div class="text-center">
+                        <div class="text-3xl sm:text-4xl font-bold text-white counter" data-target="98.5" data-suffix="%">0%</div>
+                        <div class="text-xs font-medium text-green-400/40 mt-1 tracking-widest uppercase">Accuracy</div>
+                    </div>
+                    <div class="w-px h-10 bg-green-500/15 hidden sm:block"></div>
+                    <div class="text-center">
+                        <div class="text-3xl sm:text-4xl font-bold text-white counter" data-target="2" data-prefix="<" data-suffix="s">0s</div>
+                        <div class="text-xs font-medium text-green-400/40 mt-1 tracking-widest uppercase">Processing</div>
+                    </div>
+                    <div class="w-px h-10 bg-green-500/15 hidden sm:block"></div>
+                    <div class="text-center">
+                        <div class="text-3xl sm:text-4xl font-bold text-white counter" data-target="50" data-suffix="K+">0</div>
+                        <div class="text-xs font-medium text-green-400/40 mt-1 tracking-widest uppercase">Waste Analyzed</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-green-500/30" style="animation: resultUp 0.8s 1.1s both;">
+                <span class="text-[10px] tracking-[0.3em] uppercase">Scroll</span>
+                <div class="w-5 h-8 rounded-full border border-green-500/20 flex items-start justify-center p-1">
+                    <div class="w-1 h-2 rounded-full bg-green-400/40 animate-bounce"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Marquee -->
+        <div class="relative z-10 py-6 border-y border-green-500/10 overflow-hidden">
+            <div class="marquee-track whitespace-nowrap">
+                <span class="inline-flex items-center gap-8 px-4 text-sm text-green-500/20 font-medium tracking-wider uppercase">
+                    <span>🥤 Plastic Detection</span><span>•</span>
+                    <span>📄 Paper Classification</span><span>•</span>
+                    <span>🍃 Organic Recognition</span><span>•</span>
+                    <span>♻️ Smart Recycling</span><span>•</span>
+                    <span>📊 Waste Analytics</span><span>•</span>
+                    <span>🌍 Save The Planet</span><span>•</span>
+                    <span>🥤 Plastic Detection</span><span>•</span>
+                    <span>📄 Paper Classification</span><span>•</span>
+                    <span>🍃 Organic Recognition</span><span>•</span>
+                    <span>♻️ Smart Recycling</span><span>•</span>
+                    <span>📊 Waste Analytics</span><span>•</span>
+                    <span>🌍 Save The Planet</span><span>•</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Preview Cards -->
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-24">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-3xl md:text-5xl font-bold tracking-tight grad-text-soft mb-4">Why AI SmartBin?</h2>
+                <p class="text-green-200/30 font-light text-lg max-w-2xl mx-auto">Revolutionary waste management that makes recycling effortless.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass rounded-3xl p-8 reveal tilt-card" style="transition-delay:0.1s">
+                    <div class="tilt-inner">
+                        <div class="feat-icon mb-6">
+                            <i data-lucide="brain" class="w-6 h-6 text-green-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">AI Classification</h3>
+                        <p class="text-green-100/35 font-light leading-relaxed text-sm">Advanced neural networks trained on thousands of waste images for precise categorization.</p>
+                    </div>
+                </div>
+                <div class="glass rounded-3xl p-8 reveal tilt-card" style="transition-delay:0.2s">
+                    <div class="tilt-inner">
+                        <div class="feat-icon mb-6">
+                            <i data-lucide="layers" class="w-6 h-6 text-amber-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Visual Breakdown</h3>
+                        <p class="text-green-100/35 font-light leading-relaxed text-sm">See exactly which parts are plastic, paper, or organic with stunning visual unboxing.</p>
+                    </div>
+                </div>
+                <div class="glass rounded-3xl p-8 reveal tilt-card" style="transition-delay:0.3s">
+                    <div class="tilt-inner">
+                        <div class="feat-icon mb-6">
+                            <i data-lucide="recycle" class="w-6 h-6 text-emerald-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Smart Recycling</h3>
+                        <p class="text-green-100/35 font-light leading-relaxed text-sm">Clear recommendations on whether each component should be recycled or composted.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pb-28 reveal-scale">
+            <div class="relative rounded-3xl overflow-hidden p-12 md:p-20 text-center border border-green-500/10" style="background: linear-gradient(160deg, rgba(5,46,22,0.5), rgba(3,10,6,0.9));">
+                <div class="glow" style="top:-150px;left:50%;transform:translateX(-50%);background:#22c55e;opacity:0.15;width:500px;height:500px;"></div>
+                <div class="relative z-10">
+                    <div class="text-5xl mb-6">🌍</div>
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight grad-text-soft mb-4">Ready to Sort Smarter?</h2>
+                    <p class="text-green-200/30 font-light text-lg mb-8 max-w-xl mx-auto">Upload your first waste image and see the magic of AI-powered classification.</p>
+                    <button onclick="navigateTo('how-it-works')" class="btn-amber text-white font-semibold px-10 py-4 rounded-2xl inline-flex items-center gap-2.5 text-base">
+                        <i data-lucide="upload" class="w-5 h-5"></i>
+                        Upload Waste Image
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ==================== FEATURES PAGE ==================== -->
+    <section id="page-features" class="page">
+        <div class="relative">
+            <div class="features-bg" style="position:fixed;inset:0;z-index:0;"></div>
+            <div class="relative z-10 pt-32 pb-20 px-4 sm:px-6">
+                <div class="max-w-7xl mx-auto">
+                    <div class="text-center max-w-3xl mx-auto mb-20 reveal">
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/15 bg-green-500/5 mb-6">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+                            <span class="text-xs font-medium tracking-wide text-green-300/60">Powerful Features</span>
+                        </div>
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight grad-text mb-6">Everything You Need</h1>
+                        <p class="text-lg font-light text-green-200/35 leading-relaxed">Cutting-edge AI meets intuitive design for waste classification anyone can use.</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+                        <div class="glass rounded-3xl p-8 md:col-span-2 reveal-left">
+                            <div class="flex flex-col md:flex-row gap-8">
+                                <div class="flex-1">
+                                    <div class="feat-icon mb-5"><i data-lucide="image-search" class="w-6 h-6 text-green-400"></i></div>
+                                    <h3 class="text-xl font-semibold mb-3">Image-Based Detection</h3>
+                                    <p class="text-green-100/35 font-light leading-relaxed text-sm mb-5">Upload or capture a photo. Our AI analyzes every pixel to identify waste types with incredible precision.</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="px-3 py-1 rounded-full text-xs bg-green-500/10 text-green-400 border border-green-500/15">Upload</span>
+                                        <span class="px-3 py-1 rounded-full text-xs bg-amber-500/10 text-amber-400 border border-amber-500/15">Camera</span>
+                                        <span class="px-3 py-1 rounded-full text-xs bg-green-500/10 text-green-400 border border-green-500/15">Drag & Drop</span>
+                                    </div>
+                                </div>
+                                <div class="w-full md:w-52 h-40 rounded-2xl overflow-hidden border border-green-500/10">
+                                    <img src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400&q=60" class="w-full h-full object-cover opacity-60 hover:opacity-80 transition-opacity duration-500 hover:scale-105 transition-transform" alt="">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass rounded-3xl p-8 reveal-right" style="transition-delay:0.15s">
+                            <div class="feat-icon mb-5"><i data-lucide="puzzle" class="w-6 h-6 text-amber-400"></i></div>
+                            <h3 class="text-xl font-semibold mb-3">Unboxing View</h3>
+                            <p class="text-green-100/35 font-light leading-relaxed text-sm">Visual decomposition showing exactly which part is which material — like an X-ray for your trash.</p>
+                        </div>
+
+                        <div class="glass rounded-3xl p-8 reveal-left" style="transition-delay:0.1s">
+                            <div class="feat-icon mb-5"><i data-lucide="bar-chart-3" class="w-6 h-6 text-green-400"></i></div>
+                            <h3 class="text-xl font-semibold mb-3">Percentage Analysis</h3>
+                            <p class="text-green-100/35 font-light leading-relaxed text-sm">Exact percentages of plastic, paper, and organic waste with animated visual charts and donut graphs.</p>
+                        </div>
+
+                        <div class="glass rounded-3xl p-8 reveal" style="transition-delay:0.2s">
+                            <div class="feat-icon mb-5"><i data-lucide="check-circle-2" class="w-6 h-6 text-emerald-400"></i></div>
+                            <h3 class="text-xl font-semibold mb-3">Recycle Verdict</h3>
+                            <p class="text-green-100/35 font-light leading-relaxed text-sm">Clear yes/no/partial recommendation for each waste type so you always know the right thing to do.</p>
+                        </div>
+
+                        <div class="glass rounded-3xl p-8 reveal-right" style="transition-delay:0.15s">
+                            <div class="feat-icon mb-5"><i data-lucide="zap" class="w-6 h-6 text-amber-400"></i></div>
+                            <h3 class="text-xl font-semibold mb-3">Instant Results</h3>
+                            <p class="text-green-100/35 font-light leading-relaxed text-sm">Processing in under 2 seconds. No waiting — just fast, accurate waste intelligence at your fingertips.</p>
+                        </div>
+
+                        <div class="glass rounded-3xl p-8 md:col-span-2 lg:col-span-3 reveal-scale">
+                            <div class="flex flex-col md:flex-row items-center gap-8">
+                                <div class="flex-1">
+                                    <div class="feat-icon mb-5"><i data-lucide="shield-check" class="w-6 h-6 text-green-400"></i></div>
+                                    <h3 class="text-xl font-semibold mb-3">Privacy First</h3>
+                                    <p class="text-green-100/35 font-light leading-relaxed text-sm">All processing happens locally in your browser. No data uploaded to any server — your photos stay completely private.</p>
+                                </div>
+                                <div class="flex gap-4">
+                                    <div class="w-24 h-24 rounded-2xl glass-subtle flex flex-col items-center justify-center">
+                                        <i data-lucide="lock" class="w-6 h-6 text-green-400 mb-1"></i>
+                                        <span class="text-[10px] text-green-300/40">Encrypted</span>
+                                    </div>
+                                    <div class="w-24 h-24 rounded-2xl glass-subtle flex flex-col items-center justify-center">
+                                        <i data-lucide="eye-off" class="w-6 h-6 text-green-400 mb-1"></i>
+                                        <span class="text-[10px] text-green-300/40">Private</span>
+                                    </div>
+                                    <div class="w-24 h-24 rounded-2xl glass-subtle flex flex-col items-center justify-center">
+                                        <i data-lucide="server-off" class="w-6 h-6 text-green-400 mb-1"></i>
+                                        <span class="text-[10px] text-green-300/40">No Server</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Table -->
+                    <div class="text-center mb-12 reveal">
+                        <h2 class="text-3xl md:text-4xl font-bold tracking-tight grad-text-soft mb-4">Traditional vs AI SmartBin</h2>
+                    </div>
+                    <div class="max-w-3xl mx-auto glass rounded-3xl overflow-hidden reveal-scale">
+                        <div class="grid grid-cols-3 text-sm font-semibold border-b border-green-500/10">
+                            <div class="p-5 text-green-300/50">Feature</div>
+                            <div class="p-5 text-green-300/50 text-center">Manual</div>
+                            <div class="p-5 text-center text-green-400">AI SmartBin</div>
+                        </div>
+                        <div class="grid grid-cols-3 text-sm border-b border-green-500/5 hover:bg-green-500/5 transition-colors">
+                            <div class="p-5 text-green-100/60">Speed</div>
+                            <div class="p-5 text-center text-green-100/30">2-5 min</div>
+                            <div class="p-5 text-center text-white font-semibold">&lt;2 sec</div>
+                        </div>
+                        <div class="grid grid-cols-3 text-sm border-b border-green-500/5 hover:bg-green-500/5 transition-colors">
+                            <div class="p-5 text-green-100/60">Accuracy</div>
+                            <div class="p-5 text-center text-green-100/30">~60%</div>
+                            <div class="p-5 text-center text-white font-semibold">98.5%</div>
+                        </div>
+                        <div class="grid grid-cols-3 text-sm border-b border-green-500/5 hover:bg-green-500/5 transition-colors">
+                            <div class="p-5 text-green-100/60">Visual Breakdown</div>
+                            <div class="p-5 text-center"><i data-lucide="x" class="w-4 h-4 text-red-400/60 mx-auto"></i></div>
+                            <div class="p-5 text-center"><i data-lucide="check" class="w-4 h-4 text-green-400 mx-auto"></i></div>
+                        </div>
+                        <div class="grid grid-cols-3 text-sm border-b border-green-500/5 hover:bg-green-500/5 transition-colors">
+                            <div class="p-5 text-green-100/60">Recycling Advice</div>
+                            <div class="p-5 text-center"><i data-lucide="x" class="w-4 h-4 text-red-400/60 mx-auto"></i></div>
+                            <div class="p-5 text-center"><i data-lucide="check" class="w-4 h-4 text-green-400 mx-auto"></i></div>
+                        </div>
+                        <div class="grid grid-cols-3 text-sm hover:bg-green-500/5 transition-colors">
+                            <div class="p-5 text-green-100/60">Effort</div>
+                            <div class="p-5 text-center text-red-400/60 font-medium">High</div>
+                            <div class="p-5 text-center text-green-400 font-semibold">Zero</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ==================== HOW IT WORKS PAGE ==================== -->
+    <section id="page-how-it-works" class="page">
+        <div class="relative">
+            <div class="how-bg" style="position:fixed;inset:0;z-index:0;"></div>
+            <div class="relative z-10 pt-32 pb-20 px-4 sm:px-6">
+                <div class="max-w-7xl mx-auto">
+                    <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/15 bg-green-500/5 mb-6">
+                            <i data-lucide="workflow" class="w-3.5 h-3.5 text-green-400"></i>
+                            <span class="text-xs font-medium tracking-wide text-green-300/60">Try It Live</span>
+                        </div>
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight grad-text mb-6">How It Works</h1>
+                        <p class="text-lg font-light text-green-200/35 leading-relaxed">Three simple steps to intelligent waste classification.</p>
+                    </div>
+
+                    <!-- Steps -->
+                    <div class="flex flex-col md:flex-row items-start justify-center gap-6 mb-20 max-w-4xl mx-auto">
+                        <div class="flex-1 text-center reveal" style="transition-delay:0.1s">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-700 text-white flex items-center justify-center mx-auto mb-4 text-lg font-bold shadow-lg shadow-green-500/25">1</div>
+                            <h3 class="text-lg font-semibold mb-2">Upload Image</h3>
+                            <p class="text-sm text-green-100/30 font-light">Photo or drag & drop your waste</p>
+                        </div>
+                        <div class="hidden md:flex items-center pt-4">
+                            <div class="w-10 h-[2px] bg-gradient-to-r from-green-500/40 to-transparent"></div>
+                        </div>
+                        <div class="flex-1 text-center reveal" style="transition-delay:0.2s">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center mx-auto mb-4 text-lg font-bold shadow-lg shadow-amber-500/25">2</div>
+                            <h3 class="text-lg font-semibold mb-2">AI Analysis</h3>
+                            <p class="text-sm text-green-100/30 font-light">Neural nets classify components</p>
+                        </div>
+                        <div class="hidden md:flex items-center pt-4">
+                            <div class="w-10 h-[2px] bg-gradient-to-r from-amber-500/40 to-transparent"></div>
+                        </div>
+                        <div class="flex-1 text-center reveal" style="transition-delay:0.3s">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-700 text-white flex items-center justify-center mx-auto mb-4 text-lg font-bold shadow-lg shadow-emerald-500/25">3</div>
+                            <h3 class="text-lg font-semibold mb-2">Get Results</h3>
+                            <p class="text-sm text-green-100/30 font-light">Breakdown, % & recycle advice</p>
+                        </div>
+                    </div>
+
+                    <!-- ===== AI TOOL ===== -->
+                    <div class="max-w-5xl mx-auto">
+
+                        <!-- Upload -->
+                        <div id="tool-upload" class="glass rounded-3xl p-8 md:p-12 reveal-scale">
+                            <div class="text-center mb-8">
+                                <h2 class="text-2xl md:text-3xl font-bold tracking-tight mb-3">Upload Your Waste Image</h2>
+                                <p class="text-green-100/30 font-light">Supports JPG, PNG, WebP — max 10MB</p>
+                            </div>
+                            <div id="drop-zone" class="upload-zone rounded-2xl p-12 text-center cursor-pointer relative" onclick="document.getElementById('file-input').click()">
+                                <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                                <div class="flex flex-col items-center gap-4">
+                                    <div class="w-16 h-16 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+                                        <i data-lucide="upload-cloud" class="w-8 h-8 text-green-400"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-white font-medium mb-1">Drop your image here or click to browse</p>
+                                        <p class="text-sm text-green-100/25">You can also use your camera</p>
+                                    </div>
+                                    <button onclick="event.stopPropagation();openCamera()" class="px-5 py-2.5 rounded-xl border border-green-500/20 text-sm text-green-300/70 hover:text-white hover:bg-green-500/10 transition-all flex items-center gap-2">
+                                        <i data-lucide="camera" class="w-4 h-4"></i>
+                                        Use Camera
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Camera Modal -->
+                            <div id="camera-modal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+                                <div class="bg-[#0a1f12] rounded-3xl border border-green-500/15 p-6 max-w-lg w-full" style="animation: resultUp 0.5s ease forwards;">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-lg font-semibold">Capture Waste Image</h3>
+                                        <button onclick="closeCamera()" class="p-2 hover:bg-green-500/10 rounded-xl transition-colors">
+                                            <i data-lucide="x" class="w-5 h-5 text-green-300/50"></i>
+                                        </button>
+                                    </div>
+                                    <div class="relative rounded-2xl overflow-hidden bg-black mb-4 border border-green-500/10">
+                                        <video id="camera-feed" autoplay playsinline class="w-full aspect-[4/3] object-cover"></video>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <button onclick="capturePhoto()" class="flex-1 btn-glow text-white font-medium py-3 rounded-xl flex items-center justify-center gap-2">
+                                            <i data-lucide="aperture" class="w-5 h-5"></i> Capture
+                                        </button>
+                                        <button onclick="closeCamera()" class="px-6 py-3 rounded-xl border border-green-500/20 text-green-300/60 hover:text-white hover:bg-green-500/10 transition-all">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <canvas id="camera-canvas" class="hidden"></canvas>
+                        </div>
+
+                        <!-- Processing -->
+                        <div id="tool-processing" class="glass rounded-3xl p-8 md:p-12 hidden">
+                            <div class="text-center">
+                                <div class="relative w-36 h-36 mx-auto mb-8">
+                                    <div class="absolute inset-0 rounded-full border-2 border-green-500/20 pulse-ring"></div>
+                                    <div class="absolute inset-0 rounded-full border-2 border-green-500/20 pulse-ring" style="animation-delay:0.6s"></div>
+                                    <div class="absolute inset-0 rounded-full border-2 border-amber-500/10 pulse-ring" style="animation-delay:1.2s"></div>
+                                    <div class="w-36 h-36 rounded-full border-2 border-green-500/20 flex items-center justify-center bg-green-500/5">
+                                        <div class="relative w-24 h-24 rounded-xl overflow-hidden shadow-2xl shadow-green-500/20">
+                                            <img id="processing-img" class="w-full h-full object-cover" src="">
+                                            <div class="scanner-line"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h2 class="text-2xl font-bold mb-3">Analyzing Your Waste</h2>
+                                <p id="processing-status" class="text-green-200/40 font-light">Detecting waste components...</p>
+                                <div class="mt-6 w-64 h-2 bg-green-500/10 rounded-full mx-auto overflow-hidden">
+                                    <div id="progress-bar" class="h-full bg-gradient-to-r from-green-500 to-amber-500 rounded-full transition-all duration-700 ease-out" style="width:0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Results -->
+                        <div id="tool-results" class="hidden">
+                            <div class="grid lg:grid-cols-2 gap-6 mb-6">
+                                <div class="glass rounded-3xl p-6 result-anim" style="animation-delay:0.1s">
+                                    <div class="flex items-center gap-2 mb-4">
+                                        <i data-lucide="image" class="w-4 h-4 text-green-400/40"></i>
+                                        <span class="text-sm font-medium text-green-300/50">Original Image</span>
+                                    </div>
+                                    <div class="rounded-2xl overflow-hidden border border-green-500/10">
+                                        <img id="result-original" class="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-700" src="">
+                                    </div>
+                                </div>
+
+                                <div class="glass rounded-3xl p-6 result-anim" style="animation-delay:0.25s">
+                                    <div class="flex items-center gap-2 mb-4">
+                                        <i data-lucide="layers" class="w-4 h-4 text-amber-400/40"></i>
+                                        <span class="text-sm font-medium text-green-300/50">Unboxing View</span>
+                                    </div>
+                                    <div id="unboxing-container" class="relative rounded-2xl overflow-hidden border border-green-500/10 bg-black/40" style="aspect-ratio:4/3;">
+                                        <img id="unboxing-bg" class="w-full h-full object-cover" src="" style="opacity:0.2;filter:grayscale(1) brightness(0.5);">
+                                    </div>
+                                    <div class="flex flex-wrap gap-4 mt-4">
+                                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-sm bg-blue-500"></div><span class="text-xs text-green-200/40">Plastic</span></div>
+                                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-sm bg-green-500"></div><span class="text-xs text-green-200/40">Paper</span></div>
+                                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-sm bg-amber-700"></div><span class="text-xs text-green-200/40">Organic</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Percentages -->
+                            <div class="glass rounded-3xl p-6 md:p-8 mb-6 result-anim" style="animation-delay:0.4s">
+                                <div class="flex items-center gap-2 mb-6">
+                                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-green-400/40"></i>
+                                    <span class="text-sm font-medium text-green-300/50">Waste Composition</span>
+                                </div>
+                                <div class="space-y-6" id="percentage-bars"></div>
+                                <div class="flex items-center justify-center mt-10">
+                                    <div class="relative">
+                                        <svg id="donut-chart" width="200" height="200" viewBox="0 0 200 200">
+                                            <circle cx="100" cy="100" r="75" fill="none" stroke="rgba(34,197,94,0.06)" stroke-width="24"/>
+                                        </svg>
+                                        <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                            <span class="text-2xl font-bold" id="donut-total">100%</span>
+                                            <span class="text-[10px] text-green-300/30 tracking-widest uppercase">Total</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recycle Cards -->
+                            <div class="glass rounded-3xl p-6 md:p-8 mb-6 result-anim" style="animation-delay:0.55s">
+                                <div class="flex items-center gap-2 mb-6">
+                                    <i data-lucide="recycle" class="w-4 h-4 text-green-400/40"></i>
+                                    <span class="text-sm font-medium text-green-300/50">Recycling Recommendations</span>
+                                </div>
+                                <div id="recycle-cards" class="grid sm:grid-cols-3 gap-4"></div>
+                            </div>
+
+                            <!-- Overall -->
+                            <div id="overall-verdict" class="rounded-3xl p-6 md:p-8 border result-anim mb-8" style="animation-delay:0.7s"></div>
+
+                            <div class="text-center result-anim" style="animation-delay:0.85s">
+                                <button onclick="resetTool()" class="btn-glow text-white font-semibold px-10 py-4 rounded-2xl inline-flex items-center gap-2.5">
+                                    <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                                    Analyze Another Image
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ==================== CONTACT PAGE ==================== -->
+    <section id="page-contact" class="page">
+        <div class="relative">
+            <div class="contact-bg" style="position:fixed;inset:0;z-index:0;"></div>
+            <div class="relative z-10 pt-32 pb-20 px-4 sm:px-6">
+                <div class="max-w-7xl mx-auto">
+                    <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/15 bg-green-500/5 mb-6">
+                            <i data-lucide="mail" class="w-3.5 h-3.5 text-green-400"></i>
+                            <span class="text-xs font-medium tracking-wide text-green-300/60">Get In Touch</span>
+                        </div>
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight grad-text mb-6">Contact Us</h1>
+                        <p class="text-lg font-light text-green-200/35 leading-relaxed">Questions, feedback, or partnership ideas? We'd love to hear from you.</p>
+                    </div>
+
+                    <div class="grid lg:grid-cols-5 gap-8 max-w-5xl mx-auto">
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="glass rounded-3xl p-6 reveal-left" style="transition-delay:0.1s">
+                                <div class="feat-icon mb-4"><i data-lucide="map-pin" class="w-5 h-5 text-green-400"></i></div>
+                                <h3 class="font-semibold mb-1">Location</h3>
+                                <p class="text-sm text-green-100/30 font-light">123 Innovation Drive<br>San Francisco, CA 94102</p>
+                            </div>
+                            <div class="glass rounded-3xl p-6 reveal-left" style="transition-delay:0.2s">
+                                <div class="feat-icon mb-4"><i data-lucide="mail" class="w-5 h-5 text-amber-400"></i></div>
+                                <h3 class="font-semibold mb-1">Email</h3>
+                                <p class="text-sm text-green-100/30 font-light">hello@aismartbin.ai<br>support@aismartbin.ai</p>
+                            </div>
+                            <div class="glass rounded-3xl p-6 reveal-left" style="transition-delay:0.3s">
+                                <div class="feat-icon mb-4"><i data-lucide="phone" class="w-5 h-5 text-emerald-400"></i></div>
+                                <h3 class="font-semibold mb-1">Phone</h3>
+                                <p class="text-sm text-green-100/30 font-light">+1 (555) 123-4567<br>Mon-Fri, 9am-6pm PST</p>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-3 reveal-right" style="transition-delay:0.2s">
+                            <div class="glass rounded-3xl p-8">
+                                <form id="contact-form" onsubmit="handleContactSubmit(event)">
+                                    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-green-200/60 mb-2">First Name</label>
+                                            <input type="text" required class="w-full px-4 py-3 rounded-xl bg-green-500/5 border border-green-500/10 text-white placeholder-green-200/20 text-sm focus:outline-none focus:border-green-500/30 focus:bg-green-500/10 transition-all" placeholder="John">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-green-200/60 mb-2">Last Name</label>
+                                            <input type="text" required class="w-full px-4 py-3 rounded-xl bg-green-500/5 border border-green-500/10 text-white placeholder-green-200/20 text-sm focus:outline-none focus:border-green-500/30 focus:bg-green-500/10 transition-all" placeholder="Doe">
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-green-200/60 mb-2">Email</label>
+                                        <input type="email" required class="w-full px-4 py-3 rounded-xl bg-green-500/5 border border-green-500/10 text-white placeholder-green-200/20 text-sm focus:outline-none focus:border-green-500/30 focus:bg-green-500/10 transition-all" placeholder="john@example.com">
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-green-200/60 mb-2">Subject</label>
+                                        <select required class="w-full px-4 py-3 rounded-xl bg-green-500/5 border border-green-500/10 text-white text-sm focus:outline-none focus:border-green-500/30 focus:bg-green-500/10 transition-all appearance-none" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%234ade80%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>');background-repeat:no-repeat;background-position:right 12px center;">
+                                            <option value="" disabled selected style="color:rgba(34,197,94,0.3);">Select a topic</option>
+                                            <option value="general">General Inquiry</option>
+                                            <option value="partnership">Partnership</option>
+                                            <option value="technical">Technical Support</option>
+                                            <option value="feedback">Feedback</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-6">
+                                        <label class="block text-sm font-medium text-green-200/60 mb-2">Message</label>
+                                        <textarea required rows="5" class="w-full px-4 py-3 rounded-xl bg-green-500/5 border border-green-500/10 text-white placeholder-green-200/20 text-sm focus:outline-none focus:border-green-500/30 focus:bg-green-500/10 transition-all resize-none" placeholder="Tell us what's on your mind..."></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full btn-glow text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2.5">
+                                        <i data-lucide="send" class="w-4 h-4"></i>
+                                        Send Message
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="relative z-10 border-t border-green-500/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+            <div class="grid md:grid-cols-4 gap-10 mb-12">
+                <div class="md:col-span-2">
+                    <a href="#" onclick="navigateTo('home')" class="flex items-center gap-3 mb-4">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-green-500 to-emerald-700 flex items-center justify-center shadow-lg shadow-green-500/20">
+                            <i data-lucide="leaf" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <span class="text-lg font-bold tracking-tight">AI <span class="text-green-400">SmartBin</span></span>
+                    </a>
+                    <p class="text-sm text-green-100/20 font-light leading-relaxed max-w-sm">Revolutionizing waste management with AI-powered classification. Sort smarter, recycle better, protect our planet.</p>
+                    <div class="flex gap-3 mt-6">
+                        <a href="#" class="w-10 h-10 rounded-xl bg-green-500/5 border border-green-500/10 flex items-center justify-center text-green-300/40 hover:text-white hover:bg-green-500/15 hover:border-green-500/25 transition-all duration-300 hover:-translate-y-1">
+                            <i data-lucide="twitter" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-xl bg-green-500/5 border border-green-500/10 flex items-center justify-center text-green-300/40 hover:text-white hover:bg-green-500/15 hover:border-green-500/25 transition-all duration-300 hover:-translate-y-1">
+                            <i data-lucide="github" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-xl bg-green-500/5 border border-green-500/10 flex items-center justify-center text-green-300/40 hover:text-white hover:bg-green-500/15 hover:border-green-500/25 transition-all duration-300 hover:-translate-y-1">
+                            <i data-lucide="linkedin" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold mb-4 text-green-200/60">Product</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#" onclick="navigateTo('features')" class="text-sm text-green-100/25 hover:text-green-300 transition-colors duration-300">Features</a></li>
+                        <li><a href="#" onclick="navigateTo('how-it-works')" class="text-sm text-green-100/25 hover:text-green-300 transition-colors duration-300">How It Works</a></li>
+                        <li><a href="#" class="text-sm text-green-100/25 hover:text-green-300 transition-colors duration-300">API Access</a></li>
+                        <li><a href="#" class="text-sm text-green-100/25 hover:text-green-300 transition-colors duration-300">Pricing</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold mb-4 text-green-200/60">Company</h4>
+                    <ul class="space-y-2.5">
+                        <li><a href="#" onclick="navigateTo('contact')" class="text-sm text-green-100/25 hover:text-green-300 transition-colors duration-300">Contact</a></li>
+                        <li><a href="#" class="text-sm text-green-100/25 hover:text-green-300 transition-colors duration-300">About Us</a></li>
+                        <li><a href="#" class="text-sm text-green-100/25 hover:text-green-300 transition-colors duration-300">Privacy Policy</a></li>
+                        <li><a href="#" class="text-sm text-green-100/25 hover:text-green-300 transition-colors duration-300">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-green-500/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p class="text-xs text-green-100/15">&copy; 2025 AI SmartBin. All rights reserved.</p>
+                <p class="text-xs text-green-100/15">Built with <span class="text-green-400">🍃</span> for a greener planet</p>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- Toast -->
+    <div id="toast" class="toast flex items-center gap-3">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-400" id="toast-icon"></i>
+        <span class="text-sm text-green-100/80" id="toast-message">Success!</span>
+    </div>
+
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        lucide.createIcons();
+        createLeaves();
+        initScrollReveal();
+        initCounters();
+
+        // ===== NAVIGATION =====
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById('page-' + page);
+            if (target) setTimeout(() => {
+                target.classList.add('active');
+                initScrollReveal();
+                if (page === 'home') initCounters();
+            }, 60);
+            document.querySelectorAll('.nav-link').forEach(l => {
+                l.classList.remove('active-link');
+                if (l.dataset.page === page) l.classList.add('active-link');
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => lucide.createIcons(), 120);
+        }
+
+        // ===== MOBILE MENU =====
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('open');
+            document.getElementById('mobile-overlay').classList.toggle('hidden');
+            lucide.createIcons();
+        }
+
+        // ===== FLOATING LEAVES =====
+        function createLeaves() {
+            const c = document.getElementById('leaves');
+            const emojis = ['🍃', '🌿', '☘️', '🌱'];
+            for (let i = 0; i < 12; i++) {
+                const l = document.createElement('div');
+                l.className = 'leaf';
+                l.textContent = emojis[i % emojis.length];
+                l.style.left = Math.random() * 100 + '%';
+                l.style.top = (50 + Math.random() * 50) + '%';
+                l.style.animationDuration = (12 + Math.random() * 20) + 's';
+                l.style.animationDelay = Math.random() * 15 + 's';
+                c.appendChild(l);
+            }
+        }
+
+        // ===== SCROLL REVEAL =====
+        function initScrollReveal() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+            document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+                el.classList.remove('visible');
+                observer.observe(el);
+            });
+        }
+
+        // ===== COUNTER ANIMATION =====
+        function initCounters() {
+            document.querySelectorAll('.counter').forEach(c => {
+                const target = parseFloat(c.dataset.target);
+                const prefix = c.dataset.prefix || '';
+                const suffix = c.dataset.suffix || '';
+                let current = 0;
+                const step = target / 60;
+                const interval = setInterval(() => {
+                    current += step;
+                    if (current >= target) { current = target; clearInterval(interval); }
+                    c.textContent = prefix + (Number.isInteger(target) ? Math.round(current) : current.toFixed(1)) + suffix;
+                }, 25);
+            });
+        }
+
+        // ===== DRAG & DROP =====
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault(); dropZone.classList.remove('dragover');
+            const f = e.dataTransfer.files[0];
+            if (f && f.type.startsWith('image/')) processImage(f);
+        });
+
+        function handleFileSelect(e) { if (e.target.files[0]) processImage(e.target.files[0]); }
+
+        // ===== CAMERA =====
+        let cameraStream = null;
+        function openCamera() {
+            document.getElementById('camera-modal').classList.remove('hidden');
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(s => { cameraStream = s; document.getElementById('camera-feed').srcObject = s; lucide.createIcons(); })
+                .catch(() => { showToast('Camera access denied. Use file upload.', 'error'); closeCamera(); });
+        }
+        function closeCamera() {
+            if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+            document.getElementById('camera-feed').srcObject = null;
+            document.getElementById('camera-modal').classList.add('hidden');
+        }
+        function capturePhoto() {
+            const v = document.getElementById('camera-feed');
+            const c = document.getElementById('camera-canvas');
+            c.width = v.videoWidth; c.height = v.videoHeight;
+            c.getContext('2d').drawImage(v, 0, 0);
+            c.toBlob(b => { closeCamera(); processImage(b); }, 'image/jpeg', 0.9);
+        }
+
+        // ===== PROCESS IMAGE =====
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const src = e.target.result;
+                document.getElementById('tool-upload').classList.add('hidden');
+                document.getElementById('tool-processing').classList.remove('hidden');
+                document.getElementById('tool-results').classList.add('hidden');
+                document.getElementById('processing-img').src = src;
+                lucide.createIcons();
+                const bar = document.getElementById('progress-bar');
+                const status = document.getElementById('processing-status');
+                const steps = [
+                    { p: 20, t: 'Detecting waste components...' },
+                    { p: 45, t: 'Classifying materials with AI...' },
+                    { p: 70, t: 'Generating unboxing view...' },
+                    { p: 90, t: 'Calculating waste percentages...' },
+                    { p: 100, t: 'Preparing recycling recommendations...' },
+                ];
+                let i = 0;
+                const iv = setInterval(() => {
+                    if (i < steps.length) { bar.style.width = steps[i].p + '%'; status.textContent = steps[i].t; i++; }
+                    else { clearInterval(iv); setTimeout(() => showResults(src), 500); }
+                }, 550);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ===== GENERATE RESULTS =====
+        function generateResults(src) {
+            let h = 0;
+            for (let i = 0; i < src.length; i++) { h = ((h << 5) - h) + src.charCodeAt(i); h |= 0; }
+            const s = Math.abs(h);
+            const plastic = 15 + (s % 45);
+            const paper = 10 + ((s >> 4) % (90 - plastic));
+            const organic = Math.max(5, 100 - plastic - paper);
+            const total = plastic + paper + organic;
+            const pP = Math.round((plastic / total) * 100);
+            const paP = Math.round((paper / total) * 100);
+            const oP = 100 - pP - paP;
+
+            const types = [
+                { type: 'Plastic', pct: pP, color: '#3b82f6', bg: 'rgba(59,130,246,0.25)', icon: '🥤' },
+                { type: 'Paper', pct: paP, color: '#22c55e', bg: 'rgba(34,197,94,0.25)', icon: '📄' },
+                { type: 'Organic', pct: oP, color: '#b45309', bg: 'rgba(180,83,9,0.25)', icon: '🍃' },
+            ];
+
+            const segments = [];
+            const count = 7 + (s % 4);
+            for (let i = 0; i < count; i++) {
+                const t = types[i % 3];
+                const v = (s >> (i * 3)) & 0xFFFF;
+                segments.push({
+                    ...t, label: t.type,
+                    x: 5 + (v % 65), y: 5 + ((v >> 4) % 60),
+                    w: 12 + ((v >> 8) % 22), h: 12 + ((v >> 6) % 22),
+                    delay: i * 180
+                });
+            }
+
+            return { plastic: pP, paper: paP, organic: oP, segments };
+        }
+
+        // ===== SHOW RESULTS =====
+        function showResults(src) {
+            const r = generateResults(src);
+            document.getElementById('tool-processing').classList.add('hidden');
+            document.getElementById('tool-results').classList.remove('hidden');
+            document.getElementById('result-original').src = src;
+            document.getElementById('unboxing-bg').src = src;
+
+            // Unboxing segments
+            const uc = document.getElementById('unboxing-container');
+            uc.querySelectorAll('.segment').forEach(s => s.remove());
+            r.segments.forEach(seg => {
+                const d = document.createElement('div');
+                d.className = 'segment';
+                d.style.cssText = `left:${seg.x}%;top:${seg.y}%;width:${seg.w}%;height:${seg.h}%;background:${seg.bg};border:2px solid ${seg.color};border-radius:10px;display:flex;align-items:center;justify-content:center;transition-delay:${seg.delay}ms;`;
+                d.innerHTML = `<span style="color:${seg.color};font-size:10px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.9);letter-spacing:0.5px;">${seg.label}</span>`;
+                uc.appendChild(d);
+                setTimeout(() => d.classList.add('revealed'), 150);
+            });
+
+            // Percentage bars
+            const bc = document.getElementById('percentage-bars');
+            bc.innerHTML = '';
+            [
+                { label: 'Plastic', pct: r.plastic, color: '#3b82f6', icon: '🥤' },
+                { label: 'Paper', pct: r.paper, color: '#22c55e', icon: '📄' },
+                { label: 'Organic', pct: r.organic, color: '#b45309', icon: '🍃' },
+            ].forEach((d, i) => {
+                const row = document.createElement('div');
+                row.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2"><span class="text-lg">${d.icon}</span><span class="text-sm font-semibold text-green-100/70">${d.label}</span></div>
+                        <span class="text-sm font-bold" style="color:${d.color}">${d.pct}%</span>
+                    </div>
+                    <div class="h-3 bg-green-500/10 rounded-full overflow-hidden">
+                        <div class="pct-bar" id="bar-${i}" style="background:linear-gradient(90deg,${d.color},${d.color}aa);box-shadow:0 0 15px ${d.color}40;"></div>
+                    </div>`;
+                bc.appendChild(row);
+                setTimeout(() => document.getElementById('bar-' + i).style.width = d.pct + '%', 400 + i * 250);
+            });
+
+            // Donut
+            buildDonut(r);
+
+            // Recycle cards
+            const rc = document.getElementById('recycle-cards');
+            rc.innerHTML = '';
+            [
+                { type:'Plastic', pct:r.plastic, icon:'🥤', sev: r.plastic>30?'yes':r.plastic>10?'mid':'no',
+                  reason: r.plastic>30?'High plastic — definitely recycle! Separate and place in plastic recycling bin.':r.plastic>10?'Moderate plastic — remove and recycle separately if possible.':'Minimal plastic — check if removable before recycling.' },
+                { type:'Paper', pct:r.paper, icon:'📄', sev: r.paper>30?'yes':r.paper>10?'mid':'no',
+                  reason: r.paper>30?'Significant paper — ensure dry and place in paper recycling.':r.paper>10?'Some paper — recycle if clean and uncontaminated.':'Trace paper — not worth separating.' },
+                { type:'Organic', pct:r.organic, icon:'🍃', sev: r.organic>30?'yes':r.organic>10?'mid':'no',
+                  reason: r.organic>40?'Large organic portion — compost this! Great for gardens.':r.organic>15?'Notable organic matter — consider composting.':'Small organic trace — decomposes naturally.' },
+            ].forEach(d => {
+                const cls = d.sev==='yes'?'badge-yes':d.sev==='mid'?'badge-mid':'badge-no';
+                const clr = d.sev==='yes'?'text-green-400 bg-green-400/10':d.sev==='mid'?'text-amber-400 bg-amber-400/10':'text-red-400/10';
+                const txt = d.sev==='yes'?'RECYCLE / COMPOST':d.sev==='mid'?'CONDITIONAL':'SKIP';
+                const ic = d.sev==='yes'?'check-circle':d.sev==='mid'?'alert-circle':'x-circle';
+                const card = document.createElement('div');
+                card.className = `rounded-2xl border p-5 ${cls}`;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2"><span class="text-xl">${d.icon}</span><span class="text-sm font-semibold">${d.type}</span><span class="text-xs text-green-200/25">(${d.pct}%)</span></div>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider ${clr} mb-3">
+                        <i data-lucide="${ic}" class="w-3 h-3"></i>${txt}
+                    </div>
+                    <p class="text-xs text-green-100/30 leading-relaxed">${d.reason}</p>`;
+                rc.appendChild(card);
+            });
+
+            // Overall verdict
+            const totalR = r.plastic + r.paper;
+            const vt = totalR>60?'yes':totalR>30?'mid':'no';
+            const vb = vt==='yes'?'badge-yes':vt==='mid'?'badge-mid':'badge-no';
+            const vi = vt==='yes'?'award':vt==='mid'?'alert-triangle':'thumbs-down';
+            const vtitle = vt==='yes'?'Highly Recyclable!':vt==='mid'?'Partially Recyclable':'Mostly Organic Waste';
+            const vdesc = vt==='yes'?`Great! ${totalR}% can be recycled. Separate plastic & paper into respective bins.`:vt==='mid'?`About ${totalR}% recyclable. Separate recyclable parts before composting the rest.`:`This is ${r.organic}% organic. Composting is the best option.`;
+            const vclr = vt==='yes'?'text-green-400':vt==='mid'?'text-amber-400':'text-red-400';
+            document.getElementById('overall-verdict').className = `rounded-3xl p-6 md:p-8 border result-anim ${vb}`;
+            document.getElementById('overall-verdict').innerHTML = `
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/5">
+                        <i data-lucide="${vi}" class="w-7 h-7 ${vclr}"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">${vtitle}</h3>
+                        <p class="text-sm text-green-100/30 font-light leading-relaxed">${vdesc}</p>
+                        <div class="flex items-center gap-5 mt-4">
+                            <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500"></div><span class="text-xs text-green-200/30">Plastic ${r.plastic}%</span></div>
+                            <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500"></div><span class="text-xs text-green-200/30">Paper ${r.paper}%</span></div>
+                            <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-amber-700"></div><span class="text-xs text-green-200/30">Organic ${r.organic}%</span></div>
+                        </div>
+                    </div>
+                </div>`;
+
+            setTimeout(() => lucide.createIcons(), 60);
+            document.getElementById('tool-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ===== DONUT =====
+        function buildDonut(r) {
+            const svg = document.getElementById('donut-chart');
+            svg.querySelectorAll('.arc').forEach(a => a.remove());
+            const data = [{ pct:r.plastic, color:'#3b82f6' },{ pct:r.paper, color:'#22c55e' },{ pct:r.organic, color:'#b45309' }];
+            const rad = 75, circ = 2 * Math.PI * rad;
+            let off = 0;
+            data.forEach(d => {
+                const len = (d.pct / 100) * circ;
+                const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                c.setAttribute('cx','100'); c.setAttribute('cy','100'); c.setAttribute('r', String(rad));
+                c.setAttribute('fill','none'); c.setAttribute('stroke', d.color); c.setAttribute('stroke-width','24');
+                c.setAttribute('stroke-dasharray', `${len} ${circ - len}`);
+                c.setAttribute('stroke-dashoffset', String(-off));
+                c.setAttribute('transform','rotate(-90 100 100)');
+                c.setAttribute('class','arc');
+                c.style.transition = 'stroke-dasharray 1.2s cubic-bezier(0.22,1,0.36,1), stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1)';
+                c.style.filter = `drop-shadow(0 0 8px ${d.color}50)`;
+                svg.appendChild(c);
+                off += len;
+            });
+        }
+
+        // ===== RESET =====
+        function resetTool() {
+            document.getElementById('tool-upload').classList.remove('hidden');
+            document.getElementById('tool-processing').classList.add('hidden');
+            document.getElementById('tool-results').classList.add('hidden');
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('file-input').value = '';
+            window.scrollTo({ top: document.getElementById('tool-upload').offsetTop - 100, behavior: 'smooth' });
+            lucide.createIcons();
+        }
+
+        // ===== CONTACT =====
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            showToast('Message sent successfully! We\'ll get back to you soon.', 'success');
+            e.target.reset();
+        }
+
+        // ===== TOAST =====
+        function showToast(msg, type='success') {
+            const t = document.getElementById('toast');
+            const ic = document.getElementById('toast-icon');
+            document.getElementById('toast-message').textContent = msg;
+            ic.setAttribute('data-lucide', type==='success'?'check-circle':'alert-circle');
+            ic.className = `w-5 h-5 ${type==='success'?'text-green-400':'text-red-400'}`;
+            lucide.createIcons();
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 4500);
+        }
+    </script>
+</body>
+</html>
