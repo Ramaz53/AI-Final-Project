@@ -1488,9 +1488,7 @@ async function submitRegister() {
     const nameParts = fullName.split(' ');
     const firstName = nameParts[0] || 'User';
     const lastName = nameParts.slice(1).join(' ') || '';
-    
-    const result = await registerUser(firstName, lastName, email, password);
-    
+    const result = await registerUser(firstName, lastName, email, password);  
     if (result.success) {
         messageDiv.innerHTML = '<span style="color: #22c55e;">Registration successful! Please login.</span>';
         setTimeout(() => {

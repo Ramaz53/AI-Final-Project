@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');  // ← YEH IMPORTANT HAI
-
 // Register API
 router.post('/register', async (req, res) => {
     try {
@@ -68,13 +67,13 @@ router.post('/login', async (req, res) => {
             });
         }
         
-        // ✅ TOKEN GENERATE KARO
+        //  TOKEN GENERATE KARO
         const token = jwt.sign(
             { id: user._id, email: user.email }, 
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
-        
+
         res.json({
             success: true,
             message: 'Login successful!',
@@ -85,8 +84,7 @@ router.post('/login', async (req, res) => {
                 lastName: user.lastName,
                 email: user.email
             }
-        });
-        
+        });   
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ success: false, message: error.message });

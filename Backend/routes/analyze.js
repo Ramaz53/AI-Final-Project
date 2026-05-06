@@ -24,7 +24,6 @@ async function getUserFromToken(req) {
         return null;
     }
 }
-
 // AI Classification Function
 function classifyWaste(imageData) {
     let hash = 0;
@@ -39,35 +38,28 @@ function classifyWaste(imageData) {
     const total = plastic + paper + organic;
     plastic = Math.round((plastic / total) * 100);
     paper = Math.round((paper / total) * 100);
-    organic = 100 - plastic - paper;
-    
+    organic = 100 - plastic - paper; 
     let verdict = 'partially_recyclable';
     if (plastic + paper > 60) verdict = 'highly_recyclable';
     else if (plastic + paper < 30) verdict = 'mostly_organic';
     
     return { plastic, paper, organic, verdict };
 }
-
 // Analyze route
 router.post('/', async (req, res) => {
     try {
-        const { image } = req.body;
-        
-        console.log(' 1. Analysis request received');
-        
+        const { image } = req.body;       
+        console.log(' 1. Analysis request received');        
         // Get user from token
-        const user = await getUserFromToken(req);
-        
+        const user = await getUserFromToken(req);        
         if (user) {
             console.log(' 2. User found:', user.email);
         } else {
             console.log(' 2. No user found (not logged in or invalid token)');
-        }
-        
+        }       
         // Classify waste
         const results = classifyWaste(image);
         console.log(' 3. Analysis complete:', results);
-        
         // Save to database ONLY if user is logged in
         let analysisId = null;
         if (user) {
