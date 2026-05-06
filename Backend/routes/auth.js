@@ -8,7 +8,7 @@ router.post('/register', async (req, res) => {
     try {
         const { firstName, lastName, email, password } = req.body;
         
-        console.log('📝 Register:', { firstName, lastName, email });
+        console.log(' Register:', { firstName, lastName, email });
         
         // Check if user exists
         const userExists = await User.findOne({ email });
@@ -27,7 +27,7 @@ router.post('/register', async (req, res) => {
             password
         });
         
-        console.log('✅ Saved to database:', newUser.email);
+        console.log(' Saved to database:', newUser.email);
         
         // ✅ TOKEN GENERATE KARO
         const token = jwt.sign(
@@ -49,7 +49,7 @@ router.post('/register', async (req, res) => {
         });
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -88,7 +88,7 @@ router.post('/login', async (req, res) => {
         });
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

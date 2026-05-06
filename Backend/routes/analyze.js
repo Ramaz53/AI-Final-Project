@@ -7,12 +7,12 @@ const jwt = require('jsonwebtoken');
 // Middleware to get user from token
 async function getUserFromToken(req) {
     const authHeader = req.headers.authorization;
-    console.log('🔑 Auth Header:', authHeader ? 'Present' : 'Missing');
+    console.log(' Auth Header:', authHeader ? 'Present' : 'Missing');
     
     if (!authHeader) return null;
     
     const token = authHeader.split(' ')[1];
-    console.log('🔑 Token:', token ? token.substring(0, 20) + '...' : 'null');
+    console.log(' Token:', token ? token.substring(0, 20) + '...' : 'null');
     
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
