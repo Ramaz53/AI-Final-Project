@@ -15,10 +15,9 @@ const app = express();
 
 // CORS setup - Frontend se connection ke liye
 app.use(cors({
-    origin: ['http://localhost:5500', 'http://127.0.0.1:5500'],
+    origin: '*',
     credentials: true
 }));
-
 app.use(express.json());
 
 // Health check API
@@ -29,7 +28,6 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
-
 // Use routes (EK BAAR USE KARO)
 app.use('/api/auth', authRoutes);
 // app.use('/api/contact', contactRoutes);

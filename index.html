@@ -1561,5 +1561,54 @@ document.addEventListener('DOMContentLoaded', () => {
         <div id="auth-message" style="margin-top: 15px; text-align: center; font-size: 12px; color: #888;"></div>
     </div>
 </div>
+<!-- java script for logout button -->
+ <script>
+    // ==================== LOGOUT FUNCTIONS ====================
+function logoutUser() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    showToast('Logged out successfully!', 'success');
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+function updateNavbarForLoggedInUser(name) {
+    // Desktop buttons
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const mobileLoginBtn = document.getElementById('mobile-login-btn');
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');   
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
+    if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'flex';
+   
+    lucide.createIcons();
+}
+function updateNavbarForLogout() {
+    // Desktop buttons
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const mobileLoginBtn = document.getElementById('mobile-login-btn');
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');  
+    if (loginBtn) loginBtn.style.display = 'inline-flex';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (mobileLoginBtn) mobileLoginBtn.style.display = 'flex';
+    if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
+    
+    lucide.createIcons();
+}
+function checkLoginStatus() {
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (token && savedUser) {
+        const user = JSON.parse(savedUser);
+        updateNavbarForLoggedInUser(user.firstName);
+    } else {
+        updateNavbarForLogout();
+    }
+}
+ </script>
 </body>
 </html>
