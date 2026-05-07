@@ -1609,6 +1609,36 @@ function checkLoginStatus() {
         updateNavbarForLogout();
     }
 }
+// ==================== CONTACT FORM ====================
+async function submitContact(firstName, lastName, email, subject, message) {
+    try {
+        const response = await fetch(`${API_URL}/contact/submit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firstName, lastName, email, subject, message })
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Contact error:', error);
+        return { success: false, message: error.message };
+    }
+}
+async function handleContactSubmit(event) {
+    event.preventDefault();
+    const firstName = event.target.querySelector('input[placeholder="John"]').value;
+    const lastName = event.target.querySelector('input[placeholder="Doe"]').value;
+    const email = event.target.querySelector('input[placeholder="john@example.com"]').value;
+    const subject = event.target.querySelector('select').value;
+    const message = event.target.querySelector('textarea').value; 
+    const result = await submitContact(firstName, lastName, email, subject, message);
+    if (result.success) {
+        showToast(result.message || 'Message sent successfully!', 'success');
+        event.target.reset();
+    } else {
+        showToast(result.message || 'Something went wrong!', 'error');
+    }
+}
  </script>
 </body>
 </html>

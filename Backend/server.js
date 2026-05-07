@@ -2,24 +2,19 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
-
 // .env file load karo
 dotenv.config();
-
 // Import routes (EK BAAR DECLARE KARO)
 const authRoutes = require('./routes/auth');
-// const contactRoutes = require('./routes/contact');
+const contactRoutes = require('./routes/contact');
 const analyzeRoutes = require('./routes/analyze');
-
 const app = express();
-
 // CORS setup - Frontend se connection ke liye
 app.use(cors({
     origin: '*',
     credentials: true
 }));
 app.use(express.json());
-
 // Health check API
 app.get('/api/health', (req, res) => {
     res.json({ 
@@ -30,9 +25,8 @@ app.get('/api/health', (req, res) => {
 });
 // Use routes (EK BAAR USE KARO)
 app.use('/api/auth', authRoutes);
-// app.use('/api/contact', contactRoutes);
+app.use('/api/contact', contactRoutes);
 app.use('/api/analyze', analyzeRoutes);
-
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
@@ -51,7 +45,6 @@ app.use((req, res) => {
         message: `Route ${req.method} ${req.url} not found` 
     });
 });
-
 // Error handler
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
@@ -60,7 +53,6 @@ app.use((err, req, res, next) => {
         message: 'Internal server error!' 
     });
 });
-
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(` Server running on http://localhost:${PORT}`);
